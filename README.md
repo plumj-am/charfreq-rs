@@ -67,8 +67,12 @@ Comparison between both implementations (Rust iterations vs Python).
 $ hyperfine --warmup 3 --runs 10 --shell=bash \
 	'python3 ./char-freq/char_freq.py ./linux' \
 	'./charfreq-rs/target/release/charfreq-rs_1 -d ./linux' \
-	'./charfreq-rs/target/release/charfreq-rs_2 -d ./linux'
+	'./charfreq-rs/target/release/charfreq-rs_2 -d ./linux' \
+	'./charfreq-rs/target/release/charfreq-rs_3 -d ./linux' \
 ```
+You can also just run them individually.
+
+### Results
 ```
 Benchmark 1: char_freq.py ./linux				// Python
 	Time (mean ± σ):     39.356 s ±  1.383 s
@@ -78,18 +82,31 @@ Benchmark 2: charfreq-rs_1 -d ./linux			// Rust base
 
 Benchmark 3: charfreq-rs_2 -d ./linux			// Build optimisations
 	Time (mean ± σ):      1.258 s ±  0.024 s
+
+Benchmark 4: charfreq-rs_3 -d ./linux			// Use mimalloc
+	Time (mean ± σ):      1.220 s ±  0.026 s
 ```
 
 *NOTE: The hyperfine results have been edited solely to display them clearer.
 The values have not been adjusted.*
 
+#### Ranking
+1. rust 0.3.0 |  1.220s ± 0.026s
+2. rust 0.2.0 |  1.258s ± 0.024s
+3. rust 0.1.0 |  1.383s ± 0.024s
+4. python     | 39.356s ± 1.383s
+
 I'd appreciate if others could perform the same benchmarks and provide the
 results along with their hardware information!
+
+I'll happily add improvements to the rankings with credit. I'll need to test it
+on my machine first, of course.
 
 ## Changelog for benchmarking
 
 - 0.1.0: base
 - 0.2.0: optimise build configuration
+- 0.3.0: use mimalloc
 
 ## Improvements
 
