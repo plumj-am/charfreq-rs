@@ -1,0 +1,9 @@
+style_edition = "2024"
+max_width = 80
+hard_tabs = true
+tab_spaces = 4
+wrap_comments = true
+imports_granularity = "Preserve"
+newline_style = "Unix"
+group_imports = "StdExternalCrate"
+use_try_shorthand = true
