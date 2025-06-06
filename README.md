@@ -20,7 +20,7 @@ $ git clone https://github.com/jamesukiyo/charfreq-rs.git
 
 $ cd charfreq-rs
 
-$ cargo build --profile=release
+$ RUST_FLAGS="-C target-cpu=native" cargo build --profile=release
 ```
 Binary can be found at `./target/release/charfreq-rs`.
 ```
@@ -47,7 +47,7 @@ A full list of ignored filetypes and directories can be found there too.*
 
 ## Benchmarks
 
-Comparison between both implementations (Rust vs Python).
+Comparison between both implementations (Rust iterations vs Python).
 
 ### Test
 
@@ -64,26 +64,32 @@ Comparison between both implementations (Rust vs Python).
 - `WD 250GB SATA SSD` (generic, cheap model)
 
 ```sh
-❯ hyperfine --warmup 3 --runs 10 --shell=bash \
-	'./charfreq-rs/target/release/charfreq-rs -d ./linux' \
-	'python3 ./char-freq/char_freq.py ./linux'
+$ hyperfine --warmup 3 --runs 10 --shell=bash \
+	'python3 ./char-freq/char_freq.py ./linux' \
+	'./charfreq-rs/target/release/charfreq-rs_1 -d ./linux' \
+	'./charfreq-rs/target/release/charfreq-rs_2 -d ./linux'
 ```
-#### Version 1
 ```
-Benchmark 1: ./charfreq-rs/target/release/charfreq-rs -d ./linux
-  Time (mean ± σ):      1.383 s ±  0.024 s
+Benchmark 1: char_freq.py ./linux				// Python
+	Time (mean ± σ):     39.356 s ±  1.383 s
 
-Benchmark 2: python3 ./char-freq/char_freq.py ./linux
-  Time (mean ± σ):     39.356 s ±  1.383 s
+Benchmark 2: charfreq-rs_1 -d ./linux			// Rust base
+	Time (mean ± σ):      1.383 s ±  0.024 s
 
-Summary
-  charfreq-rs ran 28.46 ± 1.12 times faster than char_freq.py
+Benchmark 3: charfreq-rs_2 -d ./linux			// Build optimisations
+	Time (mean ± σ):      1.258 s ±  0.024 s
 ```
 
-*NOTE: The hyperfine results have been edited solely to display them clearer.*
+*NOTE: The hyperfine results have been edited solely to display them clearer.
+The values have not been adjusted.*
 
 I'd appreciate if others could perform the same benchmarks and provide the
 results along with their hardware information!
+
+## Changelog for benchmarking
+
+- 0.1.0: base
+- 0.2.0: optimise build configuration
 
 ## Improvements
 
