@@ -1,6 +1,6 @@
 [package]
 name = "charfreq-rs"
-version = "0.2.0"
+version = "0.4.0"
 authors = ["James Plummer <jamesp2001@live.co.uk>"]
 edition = "2024"
 license = "MIT"

@@ -108,6 +108,35 @@ pub fn scan_repo(
 	})
 }
 
+fn count_chars(content: &str) -> HashMap<char, u64> {
+	let mut char_count = HashMap::new();
+
+	// Faster handling for ascii content
+	if content.is_ascii() {
+		let mut ascii_counts = [0u64; 128];
+
+		// Can now process bytes directly if ascii
+		for &byte in content.as_bytes() {
+			ascii_counts[byte as usize] += 1;
+		}
+
+		// Only insert the non-zero counts to HashMap
+		for (i, &count) in ascii_counts.iter().enumerate() {
+			if count > 0 {
+				char_count.insert(i as u8 as char, count);
+			}
+		}
+	} else {
+		// Fallback for non-ascii (unicode) content - this is how it was done
+		// for all characters previously.
+		for ch in content.chars() {
+			*char_count.entry(ch).or_insert(0) += 1;
+		}
+	}
+
+	char_count
+}
+
 // TODO: reduce type complexity (clippy)
 fn scan_directory(
 	dir_path: &Path,
@@ -128,10 +157,7 @@ fn scan_directory(
 			if path.is_file() {
 				match fs::read_to_string(&path) {
 					Ok(content) => {
-						let mut local_char_count = HashMap::new();
-						for ch in content.chars() {
-							*local_char_count.entry(ch).or_insert(0) += 1;
-						}
+						let local_char_count = count_chars(&content);
 						Some(ScanTaskResult::FileScanned {
 							char_count: local_char_count,
 							files_processed: 1,

@@ -66,11 +66,9 @@ Comparison between both implementations (Rust iterations vs Python).
 ```sh
 $ hyperfine --warmup 3 --runs 10 --shell=bash \
 	'python3 ./char-freq/char_freq.py ./linux' \
-	'./charfreq-rs/target/release/charfreq-rs_1 -d ./linux' \
-	'./charfreq-rs/target/release/charfreq-rs_2 -d ./linux' \
-	'./charfreq-rs/target/release/charfreq-rs_3 -d ./linux' \
+	'./charfreq-rs/target/release/charfreq-rs -d ./linux' \
 ```
-You can also just run them individually.
+^ Compares latest to the original Python script.
 
 ### Results
 ```
@@ -85,19 +83,27 @@ Benchmark 3: charfreq-rs_2 -d ./linux			// Build optimisations
 
 Benchmark 4: charfreq-rs_3 -d ./linux			// Use mimalloc
 	Time (mean ± σ):      1.220 s ±  0.026 s
+
+Benchmark 5: charfreq-rs_4 -d ./linux			// Efficient ascii handling
+	Time (mean ± σ):     658.5 ms ±  24.8 ms
 ```
 
 *NOTE: The hyperfine results have been edited solely to display them clearer.
 The values have not been adjusted.*
 
 #### Ranking
-1. rust 0.3.0 |  1.220s ± 0.026s
-2. rust 0.2.0 |  1.258s ± 0.024s
-3. rust 0.1.0 |  1.383s ± 0.024s
-4. python     | 39.356s ± 1.383s
+|rank|name                  |time (ms)                          |delta (ms)                                               |
+|---:|:---------------------|----------------------------------:|--------------------------------------------------------:|
+|1   |rust 0.4.0&nbsp;&nbsp;|  658.5&nbsp;&nbsp;                |±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;24.8                |
+|2   |rust 0.3.0&nbsp;&nbsp;| 1220&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;26&nbsp;&nbsp;&nbsp;|
+|3   |rust 0.2.0&nbsp;&nbsp;| 1258&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;24&nbsp;&nbsp;&nbsp;|
+|4   |rust 0.1.0&nbsp;&nbsp;| 1383&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;24&nbsp;&nbsp;&nbsp;|
+|5   |python    &nbsp;&nbsp;|39356&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±                            &nbsp;1383&nbsp;&nbsp;&nbsp;|
+
+Current version (0.4.0) is **~59.76x** faster than the original python script!
 
 I'd appreciate if others could perform the same benchmarks and provide the
-results along with their hardware information!
+results along with their hardware information.
 
 I'll happily add improvements to the rankings with credit. I'll need to test it
 on my machine first, of course.
@@ -107,6 +113,7 @@ on my machine first, of course.
 - 0.1.0: base
 - 0.2.0: optimise build configuration
 - 0.3.0: use mimalloc
+- 0.4.0: efficient ascii handling
 
 ## Improvements
 
@@ -114,6 +121,8 @@ on my machine first, of course.
 - Push performance further
 - Option for ignoring additional files
 - Option for ignoring additional directories
+- Simplify complex type `scanner.rs:143`
+- Proper CSV support
 
 ## License
 
