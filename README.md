@@ -20,7 +20,7 @@ $ git clone https://github.com/jamesukiyo/charfreq-rs.git
 
 $ cd charfreq-rs
 
-$ RUST_FLAGS="-C target-cpu=native" cargo build --profile=release
+$ RUSTFLAGS="-C target-cpu=native" cargo build --profile=release
 ```
 Binary can be found at `./target/release/charfreq-rs`.
 ```
@@ -64,7 +64,7 @@ Comparison between both implementations (Rust iterations vs Python).
 - `WD 250GB SATA SSD` (generic, cheap model)
 
 ```sh
-$ hyperfine --warmup 3 --runs 10 --shell=bash \
+$ hyperfine --warmup=5 --runs=10 --shell=bash \
 	'python3 ./char-freq/char_freq.py ./linux' \
 	'./charfreq-rs/target/release/charfreq-rs -d ./linux' \
 ```
@@ -72,35 +72,39 @@ $ hyperfine --warmup 3 --runs 10 --shell=bash \
 
 ### Results
 ```
-Benchmark 1: char_freq.py ./linux				// Python
-	Time (mean ± σ):     39.356 s ±  1.383 s
+Benchmark 1: 'python3 ./char_freq.py ./linux'
+	Time (mean ± σ):     39.285 s ±  0.991 s
+	Range (min … max):   38.220 s … 40.738 s
 
-Benchmark 2: charfreq-rs_1 -d ./linux			// Rust base
-	Time (mean ± σ):      1.383 s ±  0.024 s
+Benchmark 2: './charfreq-rs_1 -d ./linux'
+	Time (mean ± σ):      1.376 s ±  0.022 s
+	Range (min … max):    1.329 s …  1.402 s
 
-Benchmark 3: charfreq-rs_2 -d ./linux			// Build optimisations
-	Time (mean ± σ):      1.258 s ±  0.024 s
+Benchmark 3: './charfreq-rs_2 -d ./linux'
+	Time (mean ± σ):      1.259 s ±  0.031 s
+	Range (min … max):    1.211 s …  1.306 s
 
-Benchmark 4: charfreq-rs_3 -d ./linux			// Use mimalloc
-	Time (mean ± σ):      1.220 s ±  0.026 s
+Benchmark 4: './charfreq-rs_3 -d ./linux'
+	Time (mean ± σ):      1.224 s ±  0.026 s
+	Range (min … max):    1.176 s …  1.263 s
 
-Benchmark 5: charfreq-rs_4 -d ./linux			// Efficient ascii handling
-	Time (mean ± σ):     658.5 ms ±  24.8 ms
+Benchmark 5: './charfreq-rs_4 -d ./linux'
+	Time (mean ± σ):     649.9 ms ±  18.5 ms
+	Range (min … max):   615.8 ms … 675.7 ms
 ```
-
 *NOTE: The hyperfine results have been edited solely to display them clearer.
 The values have not been adjusted.*
 
 #### Ranking
 |rank|name                  |time (ms)                          |delta (ms)                                               |
 |---:|:---------------------|----------------------------------:|--------------------------------------------------------:|
-|1   |rust 0.4.0&nbsp;&nbsp;|  658.5&nbsp;&nbsp;                |±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;24.8                |
-|2   |rust 0.3.0&nbsp;&nbsp;| 1220&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;26&nbsp;&nbsp;&nbsp;|
-|3   |rust 0.2.0&nbsp;&nbsp;| 1258&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;24&nbsp;&nbsp;&nbsp;|
-|4   |rust 0.1.0&nbsp;&nbsp;| 1383&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;24&nbsp;&nbsp;&nbsp;|
-|5   |python    &nbsp;&nbsp;|39356&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±                            &nbsp;1383&nbsp;&nbsp;&nbsp;|
+|1   |rust 0.4.0&nbsp;&nbsp;|  649.9&nbsp;&nbsp;                |±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;18.5                |
+|2   |rust 0.3.0&nbsp;&nbsp;| 1224&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;26&nbsp;&nbsp;&nbsp;|
+|3   |rust 0.2.0&nbsp;&nbsp;| 1259&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;31&nbsp;&nbsp;&nbsp;|
+|4   |rust 0.1.0&nbsp;&nbsp;| 1376&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;24&nbsp;&nbsp;&nbsp;|
+|5   |python    &nbsp;&nbsp;|39285&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±                 &nbsp;&nbsp;&nbsp;991&nbsp;&nbsp;&nbsp;|
 
-Current version (0.4.0) is **~59.76x** faster than the original python script!
+Current version (0.4.0) is **~60.45x** faster than the original python script!
 
 I'd appreciate if others could perform the same benchmarks and provide the
 results along with their hardware information.
