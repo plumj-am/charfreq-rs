@@ -28,7 +28,7 @@ Usage: charfreq-rs [OPTIONS]
 
 Options:
   -d, --dir <REPO_PATH>  Path to the repository [default: ""]
-  -t, --top <TOP>        Number of top characters to display [default: 50]
+  -t, --top <TOP>        Number of top characters to display [default: 20]
   -s, --show-spaces      Include spaces and whitespace characters in the output
   -e, --exclude-letters  Exclude all letters (A-Z, a-z) from the output
       --save-csv         [MAY NOT WORK] Save results as CSV in the current working directory

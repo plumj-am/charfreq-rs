@@ -9,7 +9,7 @@ pub struct Args {
 	pub repo_path: String,
 
 	/// Number of top characters to display
-	#[arg(short = 't', long = "top", default_value = "50")]
+	#[arg(short = 't', long = "top", default_value = "20")]
 	pub top: usize,
 
 	/// Include spaces and whitespace characters in the output
