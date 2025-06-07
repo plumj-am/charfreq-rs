@@ -29,8 +29,9 @@ pub fn print_results(
 			continue;
 		}
 
-		// Format certain characters for so they'll display correctly
-		let char_display = if freq.character.is_whitespace() {
+		// Format certain characters so they'll display correctly
+		let char_display = if args.show_spaces && freq.character.is_whitespace()
+		{
 			match freq.character {
 				' ' => "' '".to_string(),
 				'\n' => "'\\n'".to_string(),

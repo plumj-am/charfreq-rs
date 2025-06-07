@@ -91,6 +91,10 @@ Benchmark 4: './charfreq-rs_3 -d ./linux'
 Benchmark 5: './charfreq-rs_4 -d ./linux'
 	Time (mean ± σ):     649.9 ms ±  18.5 ms
 	Range (min … max):   615.8 ms … 675.7 ms
+
+Benchmark 6: './charfreq-rs_5 -d ./linux'
+	Time (mean ± σ):     630.2 ms ±  30.8 ms
+	Range (min … max):   591.7 ms … 666.5 ms
 ```
 *NOTE: The hyperfine results have been edited solely to display them clearer.
 The values have not been adjusted.*
@@ -98,13 +102,18 @@ The values have not been adjusted.*
 #### Ranking
 |rank|name                  |time (ms)                          |delta (ms)                                               |
 |---:|:---------------------|----------------------------------:|--------------------------------------------------------:|
+|1   |rust 0.5.0&nbsp;&nbsp;|  630.2&nbsp;&nbsp;                |±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;30.8                |
 |1   |rust 0.4.0&nbsp;&nbsp;|  649.9&nbsp;&nbsp;                |±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;18.5                |
 |2   |rust 0.3.0&nbsp;&nbsp;| 1224&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;26&nbsp;&nbsp;&nbsp;|
 |3   |rust 0.2.0&nbsp;&nbsp;| 1259&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;31&nbsp;&nbsp;&nbsp;|
 |4   |rust 0.1.0&nbsp;&nbsp;| 1376&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;24&nbsp;&nbsp;&nbsp;|
 |5   |python    &nbsp;&nbsp;|39285&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±                 &nbsp;&nbsp;&nbsp;991&nbsp;&nbsp;&nbsp;|
 
-Current version (0.4.0) is **~60.45x** faster than the original python script!
+(0.5.0) is **~62.34x** faster than the original python script!
+(0.4.0) is **~60.45x** faster than the original python script!
+(0.3.0) is **~32.10x** faster than the original python script!
+(0.2.0) is **~31.20x** faster than the original python script!
+(0.1.0) is **~28.55x** faster than the original python script!
 
 I'd appreciate if others could perform the same benchmarks and provide the
 results along with their hardware information.
@@ -118,6 +127,7 @@ on my machine first, of course.
 - 0.2.0: optimise build configuration
 - 0.3.0: use mimalloc
 - 0.4.0: efficient ascii handling
+- 0.5.0: skip handling of whitespace chars when not using `--show-spaces`
 
 ## Improvements
 
