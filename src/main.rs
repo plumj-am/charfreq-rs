@@ -12,7 +12,7 @@ use std::time::Instant;
 use args::Args;
 use clap::Parser;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), scanner::ScanError> {
 	let args = Args::parse();
 
 	println!("Scanning repository: {}", args.repo_path);

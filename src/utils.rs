@@ -1,10 +1,10 @@
 use std::{fs, io::Write, path::PathBuf, time::Duration};
 
 use crate::args::Args;
-use crate::scanner::ScanResult;
+use crate::scanner::FinalOutput;
 
 pub fn print_results(
-	result: &ScanResult,
+	result: &FinalOutput,
 	args: &Args,
 	scan_time: Duration,
 ) -> Result<(), Box<dyn std::error::Error>> {

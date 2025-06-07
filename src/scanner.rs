@@ -6,18 +6,39 @@ use std::{
 
 use rayon::prelude::*;
 
-#[derive(Debug, Clone)]
-pub struct CharFrequency {
+pub type ScanError = Box<dyn std::error::Error>;
+
+#[derive(Debug)]
+pub struct CharFreq {
 	pub character: char,
 	pub count: u64,
 }
 
 #[derive(Debug)]
-pub struct ScanResult {
-	pub char_frequencies: Vec<CharFrequency>,
+pub struct FinalOutput {
+	pub char_frequencies: Vec<CharFreq>,
 	pub total_chars: u64,
 	pub files_processed: u64,
 	pub error_files: Vec<String>,
+}
+
+#[derive(Debug)]
+struct DirScanData {
+	char_count: HashMap<char, u64>,
+	files_processed: u64,
+	error_files: Vec<String>,
+}
+
+#[derive(Debug)]
+struct FileScanData {
+	char_count: HashMap<char, u64>,
+	files_processed: u64,
+}
+
+enum ScanTaskResult {
+	FileScanned(FileScanData),
+	DirScanned(DirScanData),
+	FileError(String),
 }
 
 // TODO: Add option to include additional filetypes
@@ -66,45 +87,120 @@ fn should_skip_file(filepath: &Path) -> bool {
 	false
 }
 
-// Helper enum to return consistent results from parallel tasks
-enum ScanTaskResult {
-	FileScanned {
-		char_count: HashMap<char, u64>,
-		files_processed: u64,
-	},
-	DirectoryScanned {
-		char_count: HashMap<char, u64>,
-		files_processed: u64,
-		error_files: Vec<String>,
-	},
-	FileError(String),
-}
-
-pub fn scan_repo(
-	repo_path: &str,
-) -> Result<ScanResult, Box<dyn std::error::Error>> {
+pub fn scan_repo(repo_path: &str) -> Result<FinalOutput, ScanError> {
 	let path = PathBuf::from(repo_path);
 
 	if !path.exists() {
 		return Err(format!("Path '{repo_path}' does not exist").into());
 	}
 
-	let (char_count, files_processed, error_files) = scan_directory(&path)?;
+	let DirScanData {
+		char_count,
+		files_processed,
+		error_files,
+	} = scan_directory(&path)?;
 
 	let total_chars: u64 = char_count.values().sum();
 
-	let mut char_frequencies: Vec<CharFrequency> = char_count
+	let mut char_frequencies: Vec<CharFreq> = char_count
 		.into_iter()
-		.map(|(character, count)| CharFrequency { character, count })
+		.map(|(character, count)| CharFreq { character, count })
 		.collect();
 
 	char_frequencies.sort_by(|a, b| b.count.cmp(&a.count));
 
-	Ok(ScanResult {
+	Ok(FinalOutput {
 		char_frequencies,
 		total_chars,
 		files_processed,
 		error_files,
+	})
+}
+
+fn scan_directory(dir_path: &Path) -> Result<DirScanData, ScanError> {
+	let entries: Vec<_> =
+		fs::read_dir(dir_path)?.collect::<Result<Vec<_>, _>>()?;
+
+	let all_task_results: Vec<ScanTaskResult> = entries
+		.into_par_iter()
+		.filter_map(|entry| {
+			let path = entry.path();
+
+			if should_skip_file(&path) {
+				return None;
+			}
+
+			if path.is_file() {
+				match fs::read_to_string(&path) {
+					Ok(content) => {
+						let local_char_count = count_chars(&content);
+						Some(ScanTaskResult::FileScanned(FileScanData {
+							char_count: local_char_count,
+							files_processed: 1,
+						}))
+					}
+					Err(e) => Some(ScanTaskResult::FileError(format!(
+						"{}: {}",
+						path.display(),
+						e
+					))),
+				}
+			} else if path.is_dir() {
+				scan_directory(&path).ok().map(
+					|DirScanData {
+					     char_count,
+					     files_processed,
+					     error_files,
+					 }| {
+						ScanTaskResult::DirScanned(DirScanData {
+							char_count,
+							files_processed,
+							error_files,
+						})
+					},
+				)
+			} else {
+				None
+			}
+		})
+		.collect();
+
+	let mut final_char_count: HashMap<char, u64> = HashMap::new();
+	let mut final_files_processed = 0u64;
+	let mut final_error_files: Vec<String> = Vec::new();
+
+	for task_result in all_task_results {
+		match task_result {
+			ScanTaskResult::FileScanned(FileScanData {
+				char_count,
+				files_processed,
+			}) => {
+				for (ch, count) in char_count {
+					*final_char_count.entry(ch).or_insert(0) += count;
+				}
+				final_files_processed += files_processed;
+			}
+			ScanTaskResult::DirScanned(DirScanData {
+				char_count,
+				files_processed,
+				error_files,
+			}) => {
+				for (ch, count) in char_count {
+					*final_char_count.entry(ch).or_insert(0) += count;
+				}
+				final_files_processed += files_processed;
+				final_error_files.extend(error_files);
+			}
+			ScanTaskResult::FileError(error) => {
+				final_error_files.push(error);
+			}
+		}
+	}
+
+	Ok(DirScanData {
+		char_count: final_char_count,
+		files_processed: final_files_processed,
+		error_files: final_error_files,
 	})
 }
 
@@ -135,87 +231,4 @@ fn count_chars(content: &str) -> HashMap<char, u64> {
 	}
 
 	char_count
-}
-
-// TODO: reduce type complexity (clippy)
-fn scan_directory(
-	dir_path: &Path,
-) -> Result<(HashMap<char, u64>, u64, Vec<String>), Box<dyn std::error::Error>>
-{
-	let entries: Vec<_> =
-		fs::read_dir(dir_path)?.collect::<Result<Vec<_>, _>>()?;
-
-	let all_task_results: Vec<ScanTaskResult> = entries
-		.into_par_iter()
-		.filter_map(|entry| {
-			let path = entry.path();
-
-			if should_skip_file(&path) {
-				return None;
-			}
-
-			if path.is_file() {
-				match fs::read_to_string(&path) {
-					Ok(content) => {
-						let local_char_count = count_chars(&content);
-						Some(ScanTaskResult::FileScanned {
-							char_count: local_char_count,
-							files_processed: 1,
-						})
-					}
-					Err(e) => Some(ScanTaskResult::FileError(format!(
-						"{}: {}",
-						path.display(),
-						e
-					))),
-				}
-			} else if path.is_dir() {
-				scan_directory(&path).ok().map(
-					|(char_count, files_processed, error_files)| {
-						ScanTaskResult::DirectoryScanned {
-							char_count,
-							files_processed,
-							error_files,
-						}
-					},
-				)
-			} else {
-				None
-			}
-		})
-		.collect();
-
-	let mut final_char_count: HashMap<char, u64> = HashMap::new();
-	let mut final_files_processed = 0u64;
-	let mut final_error_files: Vec<String> = Vec::new();
-
-	for task_result in all_task_results {
-		match task_result {
-			ScanTaskResult::FileScanned {
-				char_count,
-				files_processed,
-			} => {
-				for (ch, count) in char_count {
-					*final_char_count.entry(ch).or_insert(0) += count;
-				}
-				final_files_processed += files_processed;
-			}
-			ScanTaskResult::DirectoryScanned {
-				char_count,
-				files_processed,
-				error_files,
-			} => {
-				for (ch, count) in char_count {
-					*final_char_count.entry(ch).or_insert(0) += count;
-				}
-				final_files_processed += files_processed;
-				final_error_files.extend(error_files);
-			}
-			ScanTaskResult::FileError(error) => {
-				final_error_files.push(error);
-			}
-		}
-	}
-
-	Ok((final_char_count, final_files_processed, final_error_files))
 }
