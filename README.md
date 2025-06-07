@@ -109,11 +109,11 @@ The values have not been adjusted.*
 |4   |rust 0.1.0&nbsp;&nbsp;| 1376&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;24&nbsp;&nbsp;&nbsp;|
 |5   |python    &nbsp;&nbsp;|39285&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±                 &nbsp;&nbsp;&nbsp;991&nbsp;&nbsp;&nbsp;|
 
-(0.5.0) is **~62.34x** faster than the original python script!
-(0.4.0) is **~60.45x** faster than the original python script!
-(0.3.0) is **~32.10x** faster than the original python script!
-(0.2.0) is **~31.20x** faster than the original python script!
-(0.1.0) is **~28.55x** faster than the original python script!
+- (0.5.0) is **~62.34x** faster than the original python script!
+- (0.4.0) is **~60.45x** faster than the original python script!
+- (0.3.0) is **~32.10x** faster than the original python script!
+- (0.2.0) is **~31.20x** faster than the original python script!
+- (0.1.0) is **~28.55x** faster than the original python script!
 
 I'd appreciate if others could perform the same benchmarks and provide the
 results along with their hardware information.
@@ -135,7 +135,6 @@ on my machine first, of course.
 - Push performance further
 - Option for ignoring additional files
 - Option for ignoring additional directories
-- Simplify complex type `scanner.rs:143`
 - Proper CSV support
 
 ## License
