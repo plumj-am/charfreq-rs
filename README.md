@@ -48,8 +48,6 @@ A full list of ignored filetypes and directories can be found there too.*
 
 ## Benchmarks
 
-Comparison between both implementations (Rust iterations vs Python).
-
 ### Test
 
 **Tool**: **[hyperfine](https://github.com/sharkdp/hyperfine)**
@@ -60,69 +58,35 @@ Comparison between both implementations (Rust iterations vs Python).
 - `~1_508_915_498` characters
 
 **Hardware**:
-- `i5-13600KF @5.3GHz (OC)`,
+- `i5-13600KF @5.2GHz (OC)`,
 - `2x16GB DDR5 G.Skill Z5 Trident @7000MT/s (OC)`,
 - `WD 250GB SATA SSD` (generic, cheap model)
 
 ```sh
-$ hyperfine --warmup=5 --runs=10 --shell=bash \
+$ hyperfine --warmup=10 --runs=10 --shell=bash \
 	'python3 ./char-freq/char_freq.py ./linux' \
 	'./charfreq-rs/target/release/charfreq-rs -d ./linux' \
 ```
 ^ Compares latest to the original Python script.
 
-### Results
+### Latest results
 ```
-Benchmark 1: 'python3 ./char_freq.py ./linux'
-	Time (mean ± σ):     39.285 s ±  0.991 s
-	Range (min … max):   38.220 s … 40.738 s
+Benchmark 1: python3 ./char-freq/char_freq.py ./linux
+  Time (mean ± σ):     39544.7 ms ± 1519.7 ms    [User: 0.0 ms, System: 0.0 ms]
+  Range (min … max):   38151.7 ms … 41511.4 ms    10 runs
 
-Benchmark 2: './charfreq-rs_1 -d ./linux'
-	Time (mean ± σ):      1.376 s ±  0.022 s
-	Range (min … max):    1.329 s …  1.402 s
+Benchmark 2: ./charfreq-rs/target/release/charfreq-rs -d ./linux
+  Time (mean ± σ):     482.4 ms ±  21.5 ms    [User: 1810.9 ms, System: 3885.3 ms]
+  Range (min … max):   456.9 ms … 513.3 ms    10 runs
 
-Benchmark 3: './charfreq-rs_2 -d ./linux'
-	Time (mean ± σ):      1.259 s ±  0.031 s
-	Range (min … max):    1.211 s …  1.306 s
-
-Benchmark 4: './charfreq-rs_3 -d ./linux'
-	Time (mean ± σ):      1.224 s ±  0.026 s
-	Range (min … max):    1.176 s …  1.263 s
-
-Benchmark 5: './charfreq-rs_4 -d ./linux'
-	Time (mean ± σ):     649.9 ms ±  18.5 ms
-	Range (min … max):   615.8 ms … 675.7 ms
-
-Benchmark 6: './charfreq-rs_5 -d ./linux'
-	Time (mean ± σ):     630.2 ms ±  30.8 ms
-	Range (min … max):   591.7 ms … 666.5 ms
+Summary
+  ./charfreq-rs/target/release/charfreq-rs -d ./linux ran
+   81.98 ± 4.82 times faster than python3 ./char-freq/char_freq.py ./linux
 ```
-*NOTE: The hyperfine results have been edited solely to display them clearer.
-The values have not been adjusted.*
 
-#### Ranking
-|rank|name                  |time (ms)                          |delta (ms)                                               |
-|---:|:---------------------|----------------------------------:|--------------------------------------------------------:|
-|1   |rust 0.5.0&nbsp;&nbsp;|  630.2&nbsp;&nbsp;                |±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;30.8                |
-|1   |rust 0.4.0&nbsp;&nbsp;|  649.9&nbsp;&nbsp;                |±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;18.5                |
-|2   |rust 0.3.0&nbsp;&nbsp;| 1224&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;26&nbsp;&nbsp;&nbsp;|
-|3   |rust 0.2.0&nbsp;&nbsp;| 1259&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;31&nbsp;&nbsp;&nbsp;|
-|4   |rust 0.1.0&nbsp;&nbsp;| 1376&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;24&nbsp;&nbsp;&nbsp;|
-|5   |python    &nbsp;&nbsp;|39285&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|±                 &nbsp;&nbsp;&nbsp;991&nbsp;&nbsp;&nbsp;|
+TL;DR: The latest Rust version is ~82x faster than the original Python script.
 
-- (0.5.0) is **~62.34x** faster than the original python script!
-- (0.4.0) is **~60.45x** faster than the original python script!
-- (0.3.0) is **~32.10x** faster than the original python script!
-- (0.2.0) is **~31.20x** faster than the original python script!
-- (0.1.0) is **~28.55x** faster than the original python script!
-
-I'd appreciate if others could perform the same benchmarks and provide the
-results along with their hardware information.
-
-I'll happily add improvements to the rankings with credit. I'll need to test it
-on my machine first, of course.
-
-## Changelog for benchmarking
+## Changelog
 
 - 0.1.0: base
 - 0.2.0: optimise build configuration
