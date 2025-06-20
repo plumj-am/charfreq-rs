@@ -27,11 +27,12 @@ Binary can be found at `./target/release/charfreq-rs`.
 Usage: charfreq-rs [OPTIONS]
 
 Options:
-  -d, --dir <REPO_PATH>  Path to the repository [default: ""]
+  -d, --dir <REPO_PATH>  Path to the repository
   -t, --top <TOP>        Number of top characters to display [default: 20]
   -s, --show-spaces      Include spaces and whitespace characters in the output
   -e, --exclude-letters  Exclude all letters (A-Z, a-z) from the output
-      --save-csv         [MAY NOT WORK] Save results as CSV in the current working directory
+  -c, --csv              Save results as CSV in the current working directory
+  -v, --verbose          Show files with errors during the scan
   -h, --help             Print help
 ```
 Example:
@@ -128,6 +129,7 @@ on my machine first, of course.
 - 0.3.0: use mimalloc
 - 0.4.0: efficient ascii handling
 - 0.5.0: skip handling of whitespace chars when not using `--show-spaces`
+- 0.6.0: CSV confirmed working and add `-v` option to show file errors
 
 ## Improvements
 
@@ -135,7 +137,6 @@ on my machine first, of course.
 - Push performance further
 - Option for ignoring additional files
 - Option for ignoring additional directories
-- Proper CSV support
 
 ## License
 

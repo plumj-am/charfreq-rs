@@ -5,7 +5,7 @@ use clap::Parser;
 #[command(about = "A project by github/jamesukiyo\n\nAnalyse character frequencies in a repository.", long_about = None)]
 pub struct Args {
 	/// Path to the repository
-	#[arg(short = 'd', long = "dir", default_value = "\"\"")]
+	#[arg(short = 'd', long = "dir")]
 	pub repo_path: String,
 
 	/// Number of top characters to display
@@ -20,7 +20,11 @@ pub struct Args {
 	#[arg(short = 'e', long = "exclude-letters")]
 	pub exclude_letters: bool,
 
-	/// [MAY NOT WORK] Save results as CSV in the current working directory
-	#[arg(long = "save-csv")]
+	/// Save results as CSV in the current working directory
+	#[arg(short = 'c', long = "csv")]
 	pub save_csv: bool,
+
+	/// Show files with errors during the scan (usually invalid file types)
+	#[arg(short = 'v', long = "verbose")]
+	pub verbose: bool,
 }

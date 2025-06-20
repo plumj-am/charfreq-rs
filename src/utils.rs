@@ -52,7 +52,6 @@ pub fn print_results(
 			char_display, freq.count, percentage
 		);
 
-		// WARN: Has *not* been tested well
 		if args.save_csv {
 			csv_results.push((char_display, freq.count, percentage));
 		}
@@ -63,12 +62,11 @@ pub fn print_results(
 		}
 	}
 
-	// WARN: Has *not* been tested well
 	if args.save_csv {
 		save_csv(&csv_results)?;
 	}
 
-	if !result.error_files.is_empty() {
+	if args.verbose && !result.error_files.is_empty() {
 		println!("\nFiles with errors:");
 		for error in &result.error_files {
 			println!("{error}");
@@ -78,7 +76,6 @@ pub fn print_results(
 	Ok(())
 }
 
-// WARN: Has *not* been tested well
 fn save_csv(
 	results: &[(String, u64, f64)],
 ) -> Result<(), Box<dyn std::error::Error>> {
