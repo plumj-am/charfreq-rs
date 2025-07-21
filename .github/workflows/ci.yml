@@ -1,0 +1,65 @@
+name: "CI"
+
+on:
+    push:
+        paths:
+            - ".github/workflows/ci.yml"
+            - "src/**"
+            - "Cargo.toml"
+            - "Cargo.lock"
+
+env:
+    CARGO_TERM_COLOR: always
+
+jobs:
+    build:
+        name: Build
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - uses: moonrepo/setup-rust@v1
+              with:
+                  channel: stable
+                  cache-base: "^master$"
+            - run: cargo build
+
+    fmt-check:
+        name: Format Check
+        runs-on: ubuntu-latest
+        continue-on-error: true # avoid failing CI for trivial formatting errors
+        steps:
+            - uses: actions/checkout@v4
+            - uses: moonrepo/setup-rust@v1
+              with:
+                  channel: nightly
+                  components: rustfmt
+                  cache-base: "^trunk$"
+            - run: cargo fmt --check
+
+    lint:
+        name: Lint
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: moonrepo/setup-rust@v1
+              with:
+                  channel: stable
+                  components: clippy
+                  cache-base: "^master$"
+            - run: cargo clippy
+
+    # test:
+    #     name: Test
+    #     runs-on: ubuntu-latest
+    #     steps:
+    #         - uses: actions/checkout@v4
+    #           with:
+    #               fetch-depth: 0
+    #         - uses: moonrepo/setup-rust@v1
+    #           with:
+    #               bins: cargo-nextest
+    #               channel: nightly
+    #               cache-base: "^trunk$"
+    #         - run: "cargo nextest run --workspace --no-tests=pass --retries=2"

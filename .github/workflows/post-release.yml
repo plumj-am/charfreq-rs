@@ -1,0 +1,22 @@
+name: Post Release
+on:
+    workflow_run:
+        workflows: ["Release"]
+        types: [completed]
+
+jobs:
+    changelog:
+        name: Update Changelog
+        runs-on: ubuntu-latest
+        if: ${{ github.event.workflow_run.conclusion == 'success' }}
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  ref: master
+            - uses: rhysd/changelog-from-release/action@v3
+              with:
+                  file: CHANGELOG.md
+                  commit_summary_template: "chore: update changelog for %s"
+                  args: -l 2 -c
+                  footer: ""
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
