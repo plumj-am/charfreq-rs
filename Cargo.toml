@@ -1,5 +1,5 @@
 [package]
-name = "charfreq-rs"
+name = "charfreq"
 version = "0.6.0"
 authors = ["James Plummer <jamesp2001@live.co.uk>"]
 categories = ["command-line-utilities"]
