@@ -15,16 +15,14 @@ from perfect and I plan to make it better myself.
 
 ## Usage:
 
+### Install
+```sh
+cargo install charfreq
 ```
-$ git clone https://github.com/jamesukiyo/charfreq-rs.git
 
-$ cd charfreq-rs
-
-$ RUSTFLAGS="-C target-cpu=native" cargo build --profile=release
+### Run
 ```
-Binary can be found at `./target/release/charfreq-rs`.
-```
-Usage: charfreq-rs [OPTIONS]
+Usage: charfreq [OPTIONS]
 
 Options:
   -d, --dir <REPO_PATH>  Path to the repository
@@ -41,10 +39,11 @@ $ ./charfreq-rs -d ~/projects/charfreq-rs --top 5 --exclude-letters
 ```
 Will show the top 5 non-alphabetic characters in a codebase.
 
-*Note: Many filetypes (e.g. `.exe`, `.mp3`) and directories
-(e.g.`node_modules/`, `.idea/`) are ignored by default. At this time, there are
-no CLI options to adjust this, they must be added manually in `src/scanner.rs`.
-A full list of ignored filetypes and directories can be found there too.*
+>[!NOTE]
+> Many filetypes (e.g. `.exe`, `.mp3`) and directories
+> (e.g.`node_modules/`, `.idea/`) are ignored by default. At this time, there are
+> no CLI options to adjust this, they must be added manually in `src/scanner.rs`.
+> A full list of ignored filetypes and directories can be found there too.*
 
 ## Benchmarks
 
