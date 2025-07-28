@@ -18,7 +18,7 @@ fn main() -> Result<(), scanner::ScanError> {
 	println!("Scanning repository: {}", args.repo_path);
 
 	let start_time = Instant::now();
-	let result = scanner::scan_repo(&args.repo_path)?;
+	let result = scanner::scan_repo(&args.repo_path, &args)?;
 	let scan_time = start_time.elapsed();
 
 	utils::print_results(&result, &args, scan_time)?;

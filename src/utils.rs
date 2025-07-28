@@ -1,7 +1,7 @@
 use std::{fs, io::Write, path::PathBuf, time::Duration};
 
-use crate::args::Args;
-use crate::scanner::FinalOutput;
+use super::args::Args;
+use super::scanner::FinalOutput;
 
 pub fn print_results(
 	result: &FinalOutput,

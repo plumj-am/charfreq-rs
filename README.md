@@ -22,28 +22,31 @@ cargo install charfreq
 
 ### Run
 ```
-Usage: charfreq [OPTIONS]
+Usage: charfreq [OPTIONS] --dir <REPO_PATH>
 
 Options:
-  -d, --dir <REPO_PATH>  Path to the repository
-  -t, --top <TOP>        Number of top characters to display [default: 20]
-  -s, --show-spaces      Include spaces and whitespace characters in the output
-  -e, --exclude-letters  Exclude all letters (A-Z, a-z) from the output
-  -c, --csv              Save results as CSV in the current working directory
-  -v, --verbose          Show files with errors during the scan
-  -h, --help             Print help
+  -d, --dir <REPO_PATH>            Path to the repository
+  -t, --top <TOP>                  Number of top characters to display [default: 20]
+  -s, --show-spaces                Include spaces and whitespace characters in the output
+  -e, --exclude-letters            Exclude all letters (A-Z, a-z) from the output
+  -c, --csv                        Save results as CSV in the current working directory
+  -v, --verbose                    Show files with errors during the scan (usually invalid file types)
+  -i, --ignore <IGNORE_FILETYPES>  Additional filetypes to ignore (comma-separated or once for each filetype)
+  -I, --ignore-dir <IGNORE_DIRS>   Additional directories to ignore (comma-separated or once for each directory)
+  -h, --help                       Print help
 ```
+
 Example:
 ```
 $ ./charfreq-rs -d ~/projects/charfreq-rs --top 5 --exclude-letters
 ```
 Will show the top 5 non-alphabetic characters in a codebase.
 
->[!NOTE]
-> Many filetypes (e.g. `.exe`, `.mp3`) and directories
-> (e.g.`node_modules/`, `.idea/`) are ignored by default. At this time, there are
-> no CLI options to adjust this, they must be added manually in `src/scanner.rs`.
-> A full list of ignored filetypes and directories can be found there too.*
+> [!NOTE]
+> Many filetypes (e.g. `.exe`, `.mp3`) and directories (e.g.`node_modules/`,
+> `.idea/`) are ignored by default.
+
+A full list of ignored filetypes and directories can be found in `src/scanner.rs`.
 
 ## Benchmarks
 
@@ -89,8 +92,6 @@ TL;DR: The latest Rust version is ~82x faster than the original Python script.
 
 - Testing
 - Push performance further
-- Option for ignoring additional files
-- Option for ignoring additional directories
 
 ## License
 

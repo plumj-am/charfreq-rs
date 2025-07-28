@@ -27,4 +27,14 @@ pub struct Args {
 	/// Show files with errors during the scan (usually invalid file types)
 	#[arg(short = 'v', long = "verbose")]
 	pub verbose: bool,
+
+	/// Additional filetypes to ignore (comma-separated or once for each
+	/// filetype)
+	#[arg(short = 'i', long = "ignore", value_delimiter = ',')]
+	pub ignore_filetypes: Vec<String>,
+
+	/// Additional directories to ignore (comma-separated or once for each
+	/// directory)
+	#[arg(short = 'I', long = "ignore-dir", value_delimiter = ',')]
+	pub ignore_dirs: Vec<String>,
 }

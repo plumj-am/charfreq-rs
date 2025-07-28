@@ -1,10 +1,13 @@
 use std::{
 	collections::HashMap,
-	fs,
+	fs::{self, File},
+	io::{BufReader, Read},
 	path::{Path, PathBuf},
 };
 
 use rayon::prelude::*;
+
+use super::args::Args;
 
 pub type ScanError = Box<dyn std::error::Error>;
 
@@ -41,8 +44,7 @@ enum ScanTaskResult {
 	FileError(String),
 }
 
-// TODO: Add option to include additional filetypes
-fn should_skip_file(filepath: &Path) -> bool {
+fn should_skip_file(filepath: &Path, args: &Args) -> bool {
 	#[rustfmt::skip]
 	let skip_extensions = [
 		".pyc", ".exe", ".dll", ".so",
@@ -56,7 +58,6 @@ fn should_skip_file(filepath: &Path) -> bool {
 		".class", ".tree", ".map", ".debug",
 	];
 
-	// TODO: Add option to include additional directories
 	#[rustfmt::skip]
 	let skip_dirs = [
 		"node_modules", "venv", "env", ".git",
@@ -65,29 +66,49 @@ fn should_skip_file(filepath: &Path) -> bool {
 		"target", ".vscode",
 	];
 
-	// Check the file extension
+	// check the file extension
 	if let Some(ext) = filepath.extension()
 		&& let Some(ext_str) = ext.to_str()
-		&& skip_extensions
-			.iter()
-			.any(|&e| ext_str.eq_ignore_ascii_case(&e[1..]))
 	{
-		return true;
-	}
-
-	// Check if any part of the path contains directories to skip
-	for component in filepath.components() {
-		if let Some(dir_name) = component.as_os_str().to_str()
-			&& skip_dirs.contains(&dir_name)
+		// check default extensions
+		if skip_extensions
+			.iter()
+			.any(|e| ext_str.eq_ignore_ascii_case(&e[1..]))
 		{
 			return true;
+		}
+
+		// check user extensions
+		if args.ignore_filetypes.iter().any(|pattern| {
+			// handle patterns with/without leading dot
+			let pattern = pattern.trim_start_matches('.');
+			ext_str.eq_ignore_ascii_case(pattern)
+		}) {
+			return true;
+		}
+	}
+
+	// check if any part of the path contains directories to skip
+	for component in filepath.components() {
+		if let Some(dir_name) = component.as_os_str().to_str() {
+			// check default directories
+			if skip_dirs.contains(&dir_name) {
+				return true;
+			}
+
+			// check user-provided directories
+			if args.ignore_dirs.iter().any(|d| d == dir_name) {
+				return true;
+			}
 		}
 	}
 
 	false
 }
-
-pub fn scan_repo(repo_path: &str) -> Result<FinalOutput, ScanError> {
+pub fn scan_repo(
+	repo_path: &str,
+	args: &Args,
+) -> Result<FinalOutput, ScanError> {
 	let path = PathBuf::from(repo_path);
 
 	if !path.exists() {
@@ -98,7 +119,7 @@ pub fn scan_repo(repo_path: &str) -> Result<FinalOutput, ScanError> {
 		char_count,
 		files_processed,
 		error_files,
-	} = scan_directory(&path)?;
+	} = scan_directory(&path, args)?;
 
 	let total_chars: u64 = char_count.values().sum();
 
@@ -117,7 +138,10 @@ pub fn scan_repo(repo_path: &str) -> Result<FinalOutput, ScanError> {
 	})
 }
 
-fn scan_directory(dir_path: &Path) -> Result<DirScanData, ScanError> {
+fn scan_directory(
+	dir_path: &Path,
+	args: &Args,
+) -> Result<DirScanData, ScanError> {
 	let entries: Vec<_> =
 		fs::read_dir(dir_path)?.collect::<Result<Vec<_>, _>>()?;
 
@@ -126,18 +150,32 @@ fn scan_directory(dir_path: &Path) -> Result<DirScanData, ScanError> {
 		.filter_map(|entry| {
 			let path = entry.path();
 
-			if should_skip_file(&path) {
+			if should_skip_file(&path, args) {
 				return None;
 			}
 
 			if path.is_file() {
-				match fs::read_to_string(&path) {
-					Ok(content) => {
-						let local_char_count = count_chars(&content);
-						Some(ScanTaskResult::FileScanned(FileScanData {
-							char_count: local_char_count,
-							files_processed: 1,
-						}))
+				match File::open(&path) {
+					Ok(file) => {
+						let mut reader =
+							BufReader::with_capacity(32 * 1024, file);
+						let mut content = String::with_capacity(32 * 1024);
+						match reader.read_to_string(&mut content) {
+							Ok(_) => {
+								let local_char_count = count_chars(&content);
+								Some(ScanTaskResult::FileScanned(
+									FileScanData {
+										char_count: local_char_count,
+										files_processed: 1,
+									},
+								))
+							}
+							Err(e) => Some(ScanTaskResult::FileError(format!(
+								"{}: {}",
+								path.display(),
+								e
+							))),
+						}
 					}
 					Err(e) => Some(ScanTaskResult::FileError(format!(
 						"{}: {}",
@@ -146,7 +184,7 @@ fn scan_directory(dir_path: &Path) -> Result<DirScanData, ScanError> {
 					))),
 				}
 			} else if path.is_dir() {
-				scan_directory(&path).ok().map(
+				scan_directory(&path, args).ok().map(
 					|DirScanData {
 					     char_count,
 					     files_processed,
@@ -205,14 +243,26 @@ fn scan_directory(dir_path: &Path) -> Result<DirScanData, ScanError> {
 }
 
 fn count_chars(content: &str) -> HashMap<char, u64> {
-	let mut char_count = HashMap::new();
+	let mut char_count = HashMap::with_capacity(128);
 
 	// Faster handling for ascii content
 	if content.is_ascii() {
 		let mut ascii_counts = [0u64; 128];
 
 		// Can now process bytes directly if ascii
-		for &byte in content.as_bytes() {
+		let bytes = content.as_bytes();
+		let chunks = bytes.chunks_exact(8);
+		let remainder = chunks.remainder();
+
+		// Process 8 bytes at a time
+		for chunk in chunks {
+			for &byte in chunk {
+				ascii_counts[byte as usize] += 1;
+			}
+		}
+
+		// Process remaining bytes
+		for &byte in remainder {
 			ascii_counts[byte as usize] += 1;
 		}
 
@@ -223,8 +273,7 @@ fn count_chars(content: &str) -> HashMap<char, u64> {
 			}
 		}
 	} else {
-		// Fallback for non-ascii (unicode) content - this is how it was done
-		// for all characters previously.
+		// Pre-allocate space for unicode chars
 		for ch in content.chars() {
 			*char_count.entry(ch).or_insert(0) += 1;
 		}
