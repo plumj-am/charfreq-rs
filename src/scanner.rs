@@ -269,7 +269,11 @@ fn count_chars(content: &str) -> HashMap<char, u64> {
 		// Only insert the non-zero counts to HashMap
 		for (i, &count) in ascii_counts.iter().enumerate() {
 			if count > 0 {
-				char_count.insert(i as u8 as char, count);
+				char_count.insert(
+					u8::try_from(i).expect("failed to convert to u8 from usize")
+						as char,
+					count,
+				);
 			}
 		}
 	} else {

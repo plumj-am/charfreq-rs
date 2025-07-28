@@ -1,5 +1,6 @@
 use clap::Parser;
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Parser)]
 #[command(name = "charfreq-rs")]
 #[command(about = "A project by github/jamesukiyo\n\nAnalyse character frequencies in a repository.", long_about = None)]
