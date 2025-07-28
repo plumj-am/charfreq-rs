@@ -1,6 +1,6 @@
 [package]
 name = "charfreq"
-version = "0.6.1"
+version = "0.7.0"
 authors = ["James Plummer <jamesp2001@live.co.uk>"]
 categories = ["command-line-utilities"]
 edition = "2024"
