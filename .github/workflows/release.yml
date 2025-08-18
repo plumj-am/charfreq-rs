@@ -16,7 +16,7 @@ jobs:
         needs: lint
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v5
             - uses: moonrepo/setup-rust@v1
               with:
                   channel: stable
@@ -28,7 +28,7 @@ jobs:
         runs-on: ubuntu-latest
         continue-on-error: true # avoid failing CI for trivial formatting errors
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v5
             - uses: moonrepo/setup-rust@v1
               with:
                   channel: nightly
@@ -40,7 +40,7 @@ jobs:
         name: Lint
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v5
             - uses: moonrepo/setup-rust@v1
               with:
                   channel: stable
@@ -53,7 +53,7 @@ jobs:
         needs: [build, lint]
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v5
             - uses: moonrepo/setup-rust@v1
               with:
                   channel: stable
@@ -77,7 +77,7 @@ jobs:
     #     name: Test
     #     runs-on: ubuntu-latest
     #     steps:
-    #         - uses: actions/checkout@v4
+    #         - uses: actions/checkout@v5
     #           with:
     #               fetch-depth: 0
     #         - uses: moonrepo/setup-rust@v1
