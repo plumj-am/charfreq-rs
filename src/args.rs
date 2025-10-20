@@ -1,8 +1,8 @@
 use clap::Parser;
 
 #[derive(Parser)]
-#[command(name = "charfreq-rs")]
-#[command(about = "A project by github/jamesukiyo\n\nAnalyse character frequencies in a repository.", long_about = None)]
+#[command(name = "charfreq")]
+#[command(about = "A project by github/plumj-am\n\nAnalyse character frequencies in a repository.", long_about = None)]
 pub struct Args {
 	/// Path to the repository
 	#[arg(short = 'd', long = "dir")]

@@ -1,34 +1,32 @@
 [package]
-name = "charfreq"
-version = "0.7.0"
-authors = ["James Plummer <jamesp2001@live.co.uk>"]
-categories = ["command-line-utilities"]
-edition = "2024"
-homepage = "https://github.com/jamesukiyo/charfreq-rs"
-keywords = ["cli", "counter", "terminal"]
-license = "MIT"
-readme = "README.md"
-repository = "https://github.com/jamesukiyo/charfreq-rs"
+authors     = [ "PlumJam <git@plumj.am>" ]
+categories  = [ "command-line-utilities" ]
 description = "Analyse character frequencies in a repository."
+edition     = "2024"
+homepage    = "https://github.com/plumj-am/charfreq-rs"
+keywords    = [ "cli", "counter", "terminal" ]
+license     = "MIT"
+name        = "charfreq"
+readme      = "README.md"
+repository  = "https://github.com/plumj-am/charfreq-rs"
+version     = "0.7.0"
 
 [[bin]]
 name = "charfreq"
 path = "src/main.rs"
 
+[lints.clippy]
+unwrap_used = "deny"
+
 [dependencies]
-clap = { version = "4.5.39", features = ["derive"] }
-mimalloc = { version = "0.1.46", default-features = false }
-rayon = "1.10.0"
-tempfile = "3.20.0"
+clap     = { features = [ "derive" ], version = "4.5.39" }
+mimalloc = { default-features = false, version = "0.1.46" }
+rayon    = "1.10.0"
 
 [profile.release]
-opt-level = 3
-debug = false
-strip = "symbols"
-lto = "fat"
 codegen-units = 1
-panic = "abort"
-
-[profile.profiling]
-inherits = "release"
-debug = true
+debug         = false
+lto           = "fat"
+opt-level     = 3
+panic         = "abort"
+strip         = "symbols"
