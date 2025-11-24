@@ -1,3 +1,6 @@
+#![warn(clippy::pedantic)]
+#![forbid(unsafe_code)]
+
 use mimalloc::MiMalloc;
 
 #[global_allocator]
