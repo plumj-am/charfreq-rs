@@ -21,7 +21,7 @@ unwrap_used = "deny"
 [dependencies]
 clap     = { features = [ "derive" ], version = "4.6.0" }
 mimalloc = { default-features = false, version = "0.1.46" }
-rayon    = "1.10.0"
+rayon    = "1.12.0"
 
 [profile.release]
 codegen-units = 1
