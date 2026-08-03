@@ -10,7 +10,7 @@ mod utils;
 use std::time::Instant;
 
 use args::Args;
-use clap::Parser;
+use pound::Parse as _;
 
 fn main() -> Result<(), scanner::ScanError> {
    let args = Args::parse();

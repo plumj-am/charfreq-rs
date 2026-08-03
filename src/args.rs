@@ -1,40 +1,35 @@
-use clap::Parser;
-
-#[derive(Parser)]
-#[command(name = "charfreq")]
-#[command(about = "A project by github/plumj-am\n\nAnalyse character frequencies in a repository.", long_about = None)]
+#[derive(pound::Parse)]
+#[pound(name = "charfreq")]
+#[pound(about = "Analyse character frequencies in a repository", long_about = None)]
 pub struct Args {
    /// Path to the repository
-   #[arg(short = 'd', long = "dir")]
    pub repo_path: String,
 
-   /// Number of top characters to display
-   #[arg(short = 't', long = "top", default_value = "20")]
+   /// Number of top characters to display [default = 20]
+   #[pound(short, long, default = "20")]
    pub top: usize,
 
    /// Include spaces and whitespace characters in the output
-   #[arg(short = 's', long = "show-spaces")]
+   #[pound(short, long)]
    pub show_spaces: bool,
 
-   /// Exclude all letters (A-Z, a-z) from the output
-   #[arg(short = 'e', long = "exclude-letters")]
+   /// Exclude all letters from the output
+   #[pound(short, long)]
    pub exclude_letters: bool,
 
-   /// Save results as CSV in the current working directory
-   #[arg(short = 'c', long = "csv")]
+   /// Save results as a CSV in the current directory
+   #[pound(short, long)]
    pub save_csv: bool,
 
-   /// Show files with errors during the scan (usually invalid file types)
-   #[arg(short = 'v', long = "verbose")]
+   /// Show files with errors during the scan
+   #[pound(short, long)]
    pub verbose: bool,
 
-   /// Additional filetypes to ignore (comma-separated or once for each
-   /// filetype)
-   #[arg(short = 'i', long = "ignore", value_delimiter = ',')]
+   /// Additional filetypes to ignore (repeatable)
+   #[pound(short, long)]
    pub ignore_filetypes: Vec<String>,
 
-   /// Additional directories to ignore (comma-separated or once for each
-   /// directory)
-   #[arg(short = 'I', long = "ignore-dir", value_delimiter = ',')]
+   /// Additional directories to ignore (repeatable)
+   #[pound(short = 'I', long, value_delimiter = ',')]
    pub ignore_dirs: Vec<String>,
 }
