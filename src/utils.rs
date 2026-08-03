@@ -7,7 +7,7 @@ pub fn print_results(
 	result: &FinalOutput,
 	args: &Args,
 	scan_time: Duration,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), std::io::Error> {
 	println!("\nProcessed {} files", result.files_processed);
 	println!("Total characters: {:?}", result.total_chars);
 	println!("Scan time: {:.2}s", scan_time.as_secs_f64());
@@ -76,9 +76,7 @@ pub fn print_results(
 	Ok(())
 }
 
-fn save_csv(
-	results: &[(String, u64, f64)],
-) -> Result<(), Box<dyn std::error::Error>> {
+fn save_csv(results: &[(String, u64, f64)]) -> Result<(), std::io::Error> {
 	let csv_path = PathBuf::from("char_freqs.csv");
 	let mut file = fs::File::create(&csv_path)?;
 

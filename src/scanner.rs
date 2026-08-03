@@ -1,7 +1,7 @@
 use std::{
 	collections::HashMap,
 	fs::{self, File},
-	io::{BufReader, Read},
+	io::{self, BufReader, Read},
 	path::{Path, PathBuf},
 };
 
@@ -9,7 +9,7 @@ use rayon::prelude::*;
 
 use super::args::Args;
 
-pub type ScanError = Box<dyn std::error::Error>;
+pub type ScanError = io::Error;
 
 #[derive(Debug)]
 pub struct CharFreq {
@@ -136,7 +136,10 @@ pub fn scan_repo(
 	let path = PathBuf::from(repo_path);
 
 	if !path.exists() {
-		return Err(format!("Path '{repo_path}' does not exist").into());
+		return Err(io::Error::new(
+			io::ErrorKind::NotFound,
+			format!("Path '{repo_path}' does not exist"),
+		));
 	}
 
 	let DirScanData {
