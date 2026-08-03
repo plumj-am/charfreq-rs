@@ -128,7 +128,7 @@ pub fn scan_repo(
 		.map(|(character, count)| CharFreq { character, count })
 		.collect();
 
-	char_frequencies.sort_by(|a, b| b.count.cmp(&a.count));
+	char_frequencies.sort_by_key(|a| std::cmp::Reverse(a.count));
 
 	Ok(FinalOutput {
 		char_frequencies,
@@ -251,11 +251,11 @@ fn count_chars(content: &str) -> HashMap<char, u64> {
 
 		// Can now process bytes directly if ascii
 		let bytes = content.as_bytes();
-		let chunks = bytes.chunks_exact(8);
-		let remainder = chunks.remainder();
+		let chunks = bytes.as_chunks::<8>();
+		let remainder = chunks.1;
 
 		// Process 8 bytes at a time
-		for chunk in chunks {
+		for chunk in chunks.0.iter() {
 			for &byte in chunk {
 				ascii_counts[byte as usize] += 1;
 			}
