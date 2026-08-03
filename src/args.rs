@@ -1,3 +1,8 @@
+#[expect(
+   clippy::struct_excessive_bools,
+   clippy::doc_paragraphs_missing_punctuation,
+   reason = "CLI args"
+)]
 #[derive(pound::Parse)]
 #[pound(name = "charfreq")]
 #[pound(about = "Analyse character frequencies in a repository", long_about = None)]

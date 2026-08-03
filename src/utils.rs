@@ -1,8 +1,8 @@
+use core::time::Duration;
 use std::{
    fs,
-   io::Write,
+   io::Write as _,
    path::PathBuf,
-   time::Duration,
 };
 
 use super::{
@@ -39,18 +39,18 @@ pub fn print_results(
       // Format certain characters so they'll display correctly
       let char_display = if args.show_spaces && freq.character.is_whitespace() {
          match freq.character {
-            ' ' => "' '".to_string(),
-            '\n' => "'\\n'".to_string(),
-            '\t' => "'\\t'".to_string(),
-            '\r' => "'\\r'".to_string(),
-            _ => format!("'{}'", freq.character.escape_debug()),
+            ' ' => "' '".to_owned(),
+            '\n' => "'\\n'".to_owned(),
+            '\t' => "'\\t'".to_owned(),
+            '\r' => "'\\r'".to_owned(),
+            _ => String::new(),
          }
       } else {
          freq.character.to_string()
       };
 
       // Occurrence of characters as a percentage
-      let percentage = (freq.count as f64 / result.total_chars as f64) * 100.0;
+      let percentage = (freq.count as f64 / result.total_chars as f64) * 100.0_f64;
 
       println!(
          "{:>4} | {:>7?} | {:>6.2}%",

@@ -1,13 +1,9 @@
 use std::{
    collections::HashMap,
-   fs::{
-      self,
-      File,
-   },
+   fs::File,
    io::{
-      self,
       BufReader,
-      Read,
+      Read as _,
    },
    path::{
       Path,
@@ -19,7 +15,7 @@ use rayon::prelude::*;
 
 use super::args::Args;
 
-pub type ScanError = io::Error;
+pub type ScanError = std::io::Error;
 
 #[derive(Debug)]
 pub struct CharFreq {
@@ -43,18 +39,18 @@ struct CharCounts {
 
 impl CharCounts {
    fn new() -> Self {
-      CharCounts {
+      Self {
          ascii:   [0; 128],
          unicode: HashMap::new(),
       }
    }
 
-   fn merge(&mut self, other: CharCounts) {
+   fn merge(&mut self, mut other: Self) {
       for i in 0..128 {
          self.ascii[i] += other.ascii[i];
       }
-      for (ch, count) in other.unicode {
-         *self.unicode.entry(ch).or_insert(0) += count;
+      for (ch, count) in &mut other.unicode {
+         *self.unicode.entry(*ch).or_insert(0) += *count;
       }
    }
 }
@@ -143,8 +139,8 @@ pub fn scan_repo(repo_path: &str, args: &Args) -> Result<FinalOutput, ScanError>
    let path = PathBuf::from(repo_path);
 
    if !path.exists() {
-      return Err(io::Error::new(
-         io::ErrorKind::NotFound,
+      return Err(std::io::Error::new(
+         std::io::ErrorKind::NotFound,
          format!("Path '{repo_path}' does not exist"),
       ));
    }
@@ -171,7 +167,7 @@ pub fn scan_repo(repo_path: &str, args: &Args) -> Result<FinalOutput, ScanError>
       char_frequencies.push(CharFreq { character, count });
    }
 
-   char_frequencies.sort_by_key(|a| std::cmp::Reverse(a.count));
+   char_frequencies.sort_by_key(|a| core::cmp::Reverse(a.count));
 
    Ok(FinalOutput {
       char_frequencies,
@@ -182,7 +178,7 @@ pub fn scan_repo(repo_path: &str, args: &Args) -> Result<FinalOutput, ScanError>
 }
 
 fn scan_directory(dir_path: &Path, args: &Args) -> Result<DirScanData, ScanError> {
-   let entries: Vec<_> = fs::read_dir(dir_path)?.collect::<Result<Vec<_>, _>>()?;
+   let entries: Vec<_> = std::fs::read_dir(dir_path)?.collect::<Result<Vec<_>, _>>()?;
 
    let all_task_results: Vec<ScanTaskResult> = entries
       .into_par_iter()
@@ -254,7 +250,7 @@ fn scan_directory(dir_path: &Path, args: &Args) -> Result<DirScanData, ScanError
       .collect();
 
    let mut final_char_count = CharCounts::new();
-   let mut final_files_processed = 0u64;
+   let mut final_files_processed = 0_u64;
    let mut final_error_files: Vec<String> = Vec::new();
 
    for task_result in all_task_results {
@@ -288,11 +284,11 @@ fn scan_directory(dir_path: &Path, args: &Args) -> Result<DirScanData, ScanError
    })
 }
 
-fn count_chars(content: &[u8]) -> Result<CharCounts, std::str::Utf8Error> {
+fn count_chars(content: &[u8]) -> Result<CharCounts, core::str::Utf8Error> {
    // Validate UTF-8, then count characters, splitting ASCII chars into the
    // dense array and the rest into the map. The dense array keeps ASCII
    // counting alloc-free; only non-ASCII content touches the HashMap.
-   let text = std::str::from_utf8(content)?;
+   let text = core::str::from_utf8(content)?;
    let mut counts = CharCounts::new();
    for ch in text.chars() {
       let code = ch as u32;
