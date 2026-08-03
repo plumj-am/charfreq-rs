@@ -26,15 +26,39 @@ pub struct FinalOutput {
 }
 
 #[derive(Debug)]
+struct CharCounts {
+	ascii: [u64; 128],
+	unicode: HashMap<char, u64>,
+}
+
+impl CharCounts {
+	fn new() -> Self {
+		CharCounts {
+			ascii: [0; 128],
+			unicode: HashMap::new(),
+		}
+	}
+
+	fn merge(&mut self, other: CharCounts) {
+		for i in 0..128 {
+			self.ascii[i] += other.ascii[i];
+		}
+		for (ch, count) in other.unicode {
+			*self.unicode.entry(ch).or_insert(0) += count;
+		}
+	}
+}
+
+#[derive(Debug)]
 struct DirScanData {
-	char_count: HashMap<char, u64>,
+	char_count: CharCounts,
 	files_processed: u64,
 	error_files: Vec<String>,
 }
 
 #[derive(Debug)]
 struct FileScanData {
-	char_count: HashMap<char, u64>,
+	char_count: CharCounts,
 	files_processed: u64,
 }
 
@@ -121,12 +145,21 @@ pub fn scan_repo(
 		error_files,
 	} = scan_directory(&path, args)?;
 
-	let total_chars: u64 = char_count.values().sum();
+	let total_chars: u64 = char_count.ascii.iter().sum::<u64>()
+		+ char_count.unicode.values().sum::<u64>();
 
-	let mut char_frequencies: Vec<CharFreq> = char_count
-		.into_iter()
-		.map(|(character, count)| CharFreq { character, count })
-		.collect();
+	let mut char_frequencies: Vec<CharFreq> = Vec::with_capacity(128);
+	for (i, &count) in char_count.ascii.iter().enumerate() {
+		if count > 0 {
+			char_frequencies.push(CharFreq {
+				character: i as u8 as char,
+				count,
+			});
+		}
+	}
+	for (character, count) in char_count.unicode {
+		char_frequencies.push(CharFreq { character, count });
+	}
 
 	char_frequencies.sort_by_key(|a| std::cmp::Reverse(a.count));
 
@@ -159,17 +192,19 @@ fn scan_directory(
 					Ok(file) => {
 						let mut reader =
 							BufReader::with_capacity(32 * 1024, file);
-						let mut content = String::with_capacity(32 * 1024);
-						match reader.read_to_string(&mut content) {
-							Ok(_) => {
-								let local_char_count = count_chars(&content);
-								Some(ScanTaskResult::FileScanned(
-									FileScanData {
+						let mut content = Vec::with_capacity(32 * 1024);
+						match reader.read_to_end(&mut content) {
+							Ok(_) => match count_chars(&content) {
+								Ok(local_char_count) => Some(
+									ScanTaskResult::FileScanned(FileScanData {
 										char_count: local_char_count,
 										files_processed: 1,
-									},
-								))
-							}
+									}),
+								),
+								Err(e) => Some(ScanTaskResult::FileError(
+									format!("{}: {}", path.display(), e),
+								)),
+							},
 							Err(e) => Some(ScanTaskResult::FileError(format!(
 								"{}: {}",
 								path.display(),
@@ -203,7 +238,7 @@ fn scan_directory(
 		})
 		.collect();
 
-	let mut final_char_count: HashMap<char, u64> = HashMap::new();
+	let mut final_char_count = CharCounts::new();
 	let mut final_files_processed = 0u64;
 	let mut final_error_files: Vec<String> = Vec::new();
 
@@ -213,9 +248,7 @@ fn scan_directory(
 				char_count,
 				files_processed,
 			}) => {
-				for (ch, count) in char_count {
-					*final_char_count.entry(ch).or_insert(0) += count;
-				}
+				final_char_count.merge(char_count);
 				final_files_processed += files_processed;
 			}
 			ScanTaskResult::DirScanned(DirScanData {
@@ -223,9 +256,7 @@ fn scan_directory(
 				files_processed,
 				error_files,
 			}) => {
-				for (ch, count) in char_count {
-					*final_char_count.entry(ch).or_insert(0) += count;
-				}
+				final_char_count.merge(char_count);
 				final_files_processed += files_processed;
 				final_error_files.extend(error_files);
 			}
@@ -242,42 +273,19 @@ fn scan_directory(
 	})
 }
 
-fn count_chars(content: &str) -> HashMap<char, u64> {
-	let mut char_count = HashMap::with_capacity(128);
-
-	// Faster handling for ascii content
-	if content.is_ascii() {
-		let mut ascii_counts = [0u64; 128];
-
-		// Can now process bytes directly if ascii
-		let bytes = content.as_bytes();
-		let chunks = bytes.as_chunks::<8>();
-		let remainder = chunks.1;
-
-		// Process 8 bytes at a time
-		for chunk in chunks.0.iter() {
-			for &byte in chunk {
-				ascii_counts[byte as usize] += 1;
-			}
-		}
-
-		// Process remaining bytes
-		for &byte in remainder {
-			ascii_counts[byte as usize] += 1;
-		}
-
-		// Only insert the non-zero counts to HashMap
-		for (i, &count) in ascii_counts.iter().enumerate() {
-			if count > 0 {
-				char_count.insert(i as u8 as char, count);
-			}
-		}
-	} else {
-		// Pre-allocate space for unicode chars
-		for ch in content.chars() {
-			*char_count.entry(ch).or_insert(0) += 1;
+fn count_chars(content: &[u8]) -> Result<CharCounts, std::str::Utf8Error> {
+	// Validate UTF-8, then count characters, splitting ASCII chars into the
+	// dense array and the rest into the map. The dense array keeps ASCII
+	// counting alloc-free; only non-ASCII content touches the HashMap.
+	let text = std::str::from_utf8(content)?;
+	let mut counts = CharCounts::new();
+	for ch in text.chars() {
+		let code = ch as u32;
+		if code < 128 {
+			counts.ascii[code as usize] += 1;
+		} else {
+			*counts.unicode.entry(ch).or_insert(0) += 1;
 		}
 	}
-
-	char_count
+	Ok(counts)
 }
