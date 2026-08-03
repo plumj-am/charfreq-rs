@@ -13,15 +13,15 @@ use args::Args;
 use clap::Parser;
 
 fn main() -> Result<(), scanner::ScanError> {
-	let args = Args::parse();
+   let args = Args::parse();
 
-	println!("Scanning repository: {}", args.repo_path);
+   println!("Scanning repository: {}", args.repo_path);
 
-	let start_time = Instant::now();
-	let result = scanner::scan_repo(&args.repo_path, &args)?;
-	let scan_time = start_time.elapsed();
+   let start_time = Instant::now();
+   let result = scanner::scan_repo(&args.repo_path, &args)?;
+   let scan_time = start_time.elapsed();
 
-	utils::print_results(&result, &args, scan_time)?;
+   utils::print_results(&result, &args, scan_time)?;
 
-	Ok(())
+   Ok(())
 }
