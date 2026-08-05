@@ -8,9 +8,6 @@ A Rust rewrite of
 The original Python implementation was created to determine the symbols I use
 most when writing code so I could optimise the layout on my split keyboard.
 
-My first actual project written in Rust outside of learning/exercises so this
-was mostly for practice.
-
 If improvements can be made, please open a PR or issue!
 
 ## Usage:
@@ -24,30 +21,51 @@ cargo install charfreq
 ### Run
 
 ```
-Usage: charfreq [OPTIONS] --dir <REPO_PATH>
+Usage: charfreq [OPTION]... REPO_PATH
+
+Arguments:
+  REPO_PATH  Path to the repository
 
 Options:
-  -d, --dir <REPO_PATH>            Path to the repository
-  -t, --top <TOP>                  Number of top characters to display [default: 20]
-  -s, --show-spaces                Include spaces and whitespace characters in the output
-  -e, --exclude-letters            Exclude all letters (A-Z, a-z) from the output
-  -c, --csv                        Save results as CSV in the current working directory
-  -v, --verbose                    Show files with errors during the scan (usually invalid file types)
-  -i, --ignore <IGNORE_FILETYPES>  Additional filetypes to ignore (comma-separated or once for each filetype)
-  -I, --ignore-dir <IGNORE_DIRS>   Additional directories to ignore (comma-separated or once for each directory)
-  -h, --help                       Print help
+  -t, --top=TOP                            Number of top characters to display [default = 20]
+  -s, --show-spaces                        Include spaces and whitespace characters in the output
+  -e, --exclude-letters                    Exclude all letters from the output
+  -s, --save-csv                           Save results as a CSV in the current directory
+  -v, --verbose                            Show files with errors during the scan
+  -i, --ignore-filetypes=IGNORE_FILETYPES  Additional filetypes to ignore (repeatable)
+  -I, --ignore-dirs=IGNORE_DIRS            Additional directories to ignore (repeatable)
+  -h, --help                               display this help and exit
+  -V, --version                            output version information and exit
 ```
 
 Example:
 
 ```
-$ ./charfreq -d ~/projects/charfreq-rs --top 5 --exclude-letters
+charfreq ~/projects/linux --top 5 --exclude-letters
 ```
 
-Will show the top 5 non-alphabetic characters in a codebase.
+Will show the top 5 non-[a-zA-Z] characters in a codebase:
 
-> [!NOTE] Many filetypes (e.g. `.exe`, `.mp3`) and directories
-> (e.g.`node_modules/`, `.idea/`) are ignored by default.
+```
+Scanning repository: /home/jam/projects/linux
+
+Processed 94787 files
+Total characters: 1615894607
+Scan time: 0.14s
+
+Top character frequencies:
+Char | Count | Percentage
+------------------------------
+   _ | 101730581 |   6.30%
+   0 | 41432453 |   2.56%
+   , | 16120619 |   1.00%
+   1 | 12666396 |   0.78%
+   ; | 12600063 |   0.78%
+```
+
+> [!NOTE]
+> Many filetypes (e.g. `.exe`, `.mp3`) and directories (e.g.`node_modules/`,
+> `.idea/`) are ignored by default.
 
 A full list of ignored filetypes and directories can be found in
 `src/scanner.rs`.
@@ -61,44 +79,49 @@ A full list of ignored filetypes and directories can be found in
 **Tested on**:
 
 - Linux kernel source tree:
-  **[torvalds/linux](https://github.com/torvalds/linux)**
-- `90_958` files
-- `1_533_310_419` characters
+  **[torvalds/linux](https://github.com/torvalds/linux)** @
+  **[075b7484](https://github.com/torvalds/linux/commit/075b7484)**
+- `94_787` files
+- `1_615_894_607` characters
 
 **Hardware**:
 
-- CPU: `i5-13600KF @5.3GHz (OC)`
-- RAM: `2x16GB DDR5 G.Skill Z5 Trident @7000MT/s (OC)`
-- MOBO: `Gigabyte Z790 AORUS ELITE AX`
-- SSD: `Kingston SKC3000S1024G NVME SSD`
-- OS: `NixOS 25.11 (Xantusia) x86_64`
-- KERNEL: `Linux 6.17.2-zen1`
+| Component   | Name                                          |
+| ----------- | --------------------------------------------- |
+| CPU         | i5-13600KF @5.3GHz (OC)                       |
+| RAM         | 2x16GB DDR5 G.Skill Z5 Trident @7000MT/s (OC) |
+| Motherboard | Gigabyte Z790 AORUS ELITE AX                  |
+| SSD         | Kingston SKC3000S1024G NVME SSD               |
+| OS          | NixOS 26.11 (Zokor) x86_64                    |
+| Kernel      | Linux 6.18.38                                 |
 
-```nu
-$ hyperfine --warmup=10 --runs=10 --shell=NONE
-  'python3 ./char-freq/char_freq.py ./linux'
-  './charfreq-rs/target/release/charfreq -d ./linux'
+**Command**:
+
+```
+hyperfine --warmup=10 --runs=10 --shell=NONE \
+  'python3 ./char_freq.py ~/projects/linux' \
+  './charfreq-rs ~/projects/linux'
 ```
 
-^ Compares the latest version to the original Python script.
+<sup>_↑ compares the latest version to the original Python script_</sup>
 
 ### Latest results
 
 ```sh
-Benchmark 1: python3 ./char-freq/char_freq.py ./linux
-  Time (mean ± σ):     35.116 s ±  0.169 s    [User: 34.792 s, System: 0.284 s]
-  Range (min … max):   34.886 s … 35.351 s    10 runs
+Benchmark 1: ./charfreq-rs ~/projects/linux
+  Time (mean ± σ):     148.5 ms ±   4.6 ms    [User: 1328.9 ms, System: 653.9 ms]
+  Range (min … max):   138.8 ms … 155.4 ms    10 runs
 
-Benchmark 2: ./charfreq-rs/target/release/charfreq -d ./linux
-  Time (mean ± σ):     168.5 ms ±  18.0 ms    [User: 2005.4 ms, System: 573.9 ms]
-  Range (min … max):   152.0 ms … 206.5 ms    10 runs
+Benchmark 2: python3 ./char_freq.py ~/projects/linux
+  Time (mean ± σ):     32.407 s ±  0.309 s    [User: 31.972 s, System: 0.358 s]
+  Range (min … max):   31.817 s … 32.823 s    10 runs
 
 Summary
-  ./charfreq-rs/target/release/charfreq -d ./linux ran
-  208.45 ± 22.25 times faster than python3 ./char-freq/char_freq.py ./linux
+  ./charfreq-rs ~/projects/linux ran
+  218.18 ± 7.08 times faster than python3 ./char_freq.py ~/projects/linux
 ```
 
-TL;DR: The latest Rust version is ~208x faster than the original Python script.
+TL;DR: The latest Rust version is ~218x faster than the original Python script.
 
 ## Improvements
 
@@ -107,9 +130,26 @@ TL;DR: The latest Rust version is ~208x faster than the original Python script.
 
 ## License
 
-Copyright (c) PlumJam 2025-now <git@plumj.am>
+```
+The MIT License (MIT)
 
-This project is licensed under the MIT license ([LICENSE] or
-<http://opensource.org/licenses/MIT>)
+Copyright (c) 2025-present PlumJam <git@plumj.am>
 
-[license]: ./LICENSE
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
